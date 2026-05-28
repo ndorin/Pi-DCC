@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pi-DCC Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Dust Collection Control</h1>
+            <div id="collector-status" class="status-badge off">Collector: OFF</div>
+        </header>
+
+        <section class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Current Airflow</div>
+                <div class="stat-value" id="current-cfm">-- CFM</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Required Airflow</div>
+                <div class="stat-value" id="required-cfm">-- CFM</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Runtime</div>
+                <div class="stat-value" id="runtime-hours">-- hrs</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Filter Status</div>
+                <div class="stat-value" id="filter-status">--%</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="filter-progress"></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel">
+            <h2>Active Tools</h2>
+            <ul id="active-tools" class="item-list">
+                <li class="empty-state">No tools running</li>
+            </ul>
+        </section>
+
+        <section class="panel">
+            <h2>Manual Triggers</h2>
+            <ul id="active-triggers" class="item-list">
+                <li class="empty-state">No triggers active</li>
+            </ul>
+        </section>
+
+        <section class="panel">
+            <h2>Blast Gates</h2>
+            <ul id="blast-gates" class="item-list">
+                <li class="empty-state">Loading...</li>
+            </ul>
+        </section>
+
+        <section class="panel actions">
+            <button id="btn-filter-reset" class="btn btn-warning">Reset Filter Counter</button>
+        </section>
+    </div>
+
+    <script>
+        const POLL_INTERVAL = 1000;
+
+        async function fetchStatus() {
+            try {
+                const resp = await fetch('/api/status');
+                if (!resp.ok) return;
+                const data = await resp.json();
+                updateDashboard(data);
+            } catch (e) {
+                console.error('Failed to fetch status:', e);
+            }
+        }
+
+        function updateDashboard(data) {
+            // Collector status
+            const badge = document.getElementById('collector-status');
+            if (data.collector_running) {
+                badge.textContent = 'Collector: ON';
+                badge.className = 'status-badge on';
+            } else {
+                badge.textContent = 'Collector: OFF';
+                badge.className = 'status-badge off';
+            }
+
+            // Stats
+            document.getElementById('current-cfm').textContent = data.current_cfm + ' CFM';
+            document.getElementById('required-cfm').textContent = data.required_cfm + ' CFM';
+            document.getElementById('runtime-hours').textContent = data.cumulative_runtime_hours + ' hrs';
+            document.getElementById('filter-status').textContent = data.filter_status_pct + '%';
+
+            // Filter progress bar
+            const progress = document.getElementById('filter-progress');
+            progress.style.width = Math.min(data.filter_status_pct, 100) + '%';
+            if (data.filter_status_pct >= 90) {
+                progress.className = 'progress-fill danger';
+            } else if (data.filter_status_pct >= 70) {
+                progress.className = 'progress-fill warning';
+            } else {
+                progress.className = 'progress-fill';
+            }
+
+            // Active tools
+            const toolsList = document.getElementById('active-tools');
+            if (data.active_tools.length === 0) {
+                toolsList.innerHTML = '<li class="empty-state">No tools running</li>';
+            } else {
+                toolsList.innerHTML = data.active_tools
+                    .map(t => `<li class="tool-active">${t}</li>`)
+                    .join('');
+            }
+
+            // Active triggers
+            const triggersList = document.getElementById('active-triggers');
+            if (data.active_triggers.length === 0) {
+                triggersList.innerHTML = '<li class="empty-state">No triggers active</li>';
+            } else {
+                triggersList.innerHTML = data.active_triggers
+                    .map(t => `<li class="trigger-active">${t}</li>`)
+                    .join('');
+            }
+
+            // Blast gates
+            const gatesList = document.getElementById('blast-gates');
+            const allGates = [...new Set([...data.open_gates, ...data.supplemental_gates])];
+            if (allGates.length === 0 && data.open_gates.length === 0) {
+                gatesList.innerHTML = '<li class="empty-state">All gates closed</li>';
+            } else {
+                // Show open gates with their type
+                let html = '';
+                for (const g of data.open_gates) {
+                    html += `<li class="gate-open">${g}</li>`;
+                }
+                for (const g of data.supplemental_gates) {
+                    html += `<li class="gate-supplemental">${g} (supplemental)</li>`;
+                }
+                if (html === '') {
+                    html = '<li class="empty-state">All gates closed</li>';
+                }
+                gatesList.innerHTML = html;
+            }
+        }
+
+        document.getElementById('btn-filter-reset').addEventListener('click', async () => {
+            if (!confirm('Reset filter runtime counter?')) return;
+            try {
+                const resp = await fetch('/api/filter/reset', { method: 'POST' });
+                if (resp.ok) fetchStatus();
+            } catch (e) {
+                console.error('Failed to reset filter:', e);
+            }
+        });
+
+        // Poll for updates
+        fetchStatus();
+        setInterval(fetchStatus, POLL_INTERVAL);
+    </script>
+</body>
+</html>

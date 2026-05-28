@@ -1,0 +1,288 @@
+{
+  "dust_collector": {
+    "relay_pin": 17,
+    "shutdown_delay_seconds": 10,
+    "max_cfm": 1200,
+    "motor_hp": 3.0,
+    "filter_clean_interval_hours": 50
+  },
+  "airflow": {
+    "target_velocity_fpm": 4000,
+    "minimum_cfm_ratio": 0.8
+  },
+  "adc_boards": [{ "address": "0x48", "bus": 1 }],
+  "pwm_boards": [{ "address": "0x40", "bus": 1 }],
+  "neopixel": {
+    "gpio_pin": 18,
+    "led_count": 12,
+    "brightness": 0.5
+  },
+  "polling_interval_ms": 100,
+  "network": {
+    "id": "collector",
+    "pipe_diameter_inches": 6,
+    "children": [
+      {
+        "id": "main_trunk",
+        "pipe_diameter_inches": 6,
+        "children": [
+          {
+            "id": "bandsaw_port",
+            "pipe_diameter_inches": 6,
+            "blast_gate": {
+              "id": "gate_bandsaw",
+              "diameter_inches": 6,
+              "pwm_board": 0,
+              "pwm_channel": 5,
+              "led_index": 5,
+              "servo_open_angle": 90,
+              "servo_close_angle": 0
+            },
+            "children": []
+          },
+          {
+            "id": "planer_port",
+            "pipe_diameter_inches": 5,
+            "blast_gate": {
+              "id": "gate_planer",
+              "diameter_inches": 5,
+              "pwm_board": 0,
+              "pwm_channel": 7,
+              "led_index": 7,
+              "servo_open_angle": 90,
+              "servo_close_angle": 0
+            },
+            "children": []
+          },
+          {
+            "id": "lathe_port",
+            "pipe_diameter_inches": 5,
+            "blast_gate": {
+              "id": "gate_lathe",
+              "diameter_inches": 5,
+              "pwm_board": 0,
+              "pwm_channel": 9,
+              "led_index": 9,
+              "servo_open_angle": 90,
+              "servo_close_angle": 0
+            },
+            "children": []
+          },
+          {
+            "id": "floor_sweep_port",
+            "pipe_diameter_inches": 4,
+            "blast_gate": {
+              "id": "gate_floor_sweep",
+              "diameter_inches": 4,
+              "pwm_board": 0,
+              "pwm_channel": 10,
+              "led_index": 10,
+              "servo_open_angle": 90,
+              "servo_close_angle": 0
+            },
+            "children": []
+          },
+          {
+            "id": "jointer_port",
+            "pipe_diameter_inches": 4,
+            "blast_gate": {
+              "id": "gate_jointer",
+              "diameter_inches": 4,
+              "pwm_board": 0,
+              "pwm_channel": 3,
+              "led_index": 3,
+              "servo_open_angle": 90,
+              "servo_close_angle": 0
+            },
+            "children": []
+          },
+          {
+            "id": "drum_sander_port",
+            "pipe_diameter_inches": 4,
+            "blast_gate": {
+              "id": "gate_drum_sander",
+              "diameter_inches": 4,
+              "pwm_board": 0,
+              "pwm_channel": 8,
+              "led_index": 8,
+              "servo_open_angle": 90,
+              "servo_close_angle": 0
+            },
+            "children": []
+          },
+          {
+            "id": "assembly_table_port1",
+            "pipe_diameter_inches": 4,
+            "blast_gate": {
+              "id": "gate_assembly_table1",
+              "diameter_inches": 4,
+              "pwm_board": 0,
+              "pwm_channel": 4,
+              "led_index": 4,
+              "servo_open_angle": 90,
+              "servo_close_angle": 0
+            },
+            "children": [] 
+          },
+          {
+            "id": "assembly_table_port2",
+            "pipe_diameter_inches": 4,
+            "blast_gate": {
+              "id": "gate_assembly_table2",
+              "diameter_inches": 4,
+              "pwm_board": 0,
+              "pwm_channel": 11,
+              "led_index": 11,
+              "servo_open_angle": 90,
+              "servo_close_angle": 0
+            },
+            "children": []
+          },
+          {
+            "id": "center_branch",
+            "pipe_diameter_inches": 6,
+            "blast_gate": {
+              "id": "gate_center_branch",
+              "diameter_inches": 6,
+              "pwm_board": 0,
+              "pwm_channel": 0,
+              "led_index": 0,
+              "servo_open_angle": 90,
+              "servo_close_angle": 0
+            },
+            "children": [
+              {
+                "id": "table_saw_bottom_port",
+                "pipe_diameter_inches": 4,
+                "blast_gate": {
+                  "id": "gate_table_saw_bottom",
+                  "diameter_inches": 4,
+                  "pwm_board": 0,
+                  "pwm_channel": 1,
+                  "led_index": 1,
+                  "servo_open_angle": 90,
+                  "servo_close_angle": 0
+                },
+                "children": []
+              },
+              {
+                "id": "table_saw_guard_port",
+                "pipe_diameter_inches": 4,
+                "blast_gate": {
+                  "id": "gate_table_saw_guard",
+                  "diameter_inches": 4,
+                  "pwm_board": 0,
+                  "pwm_channel": 2,
+                  "led_index": 2,
+                  "servo_open_angle": 90,
+                  "servo_close_angle": 0
+                },
+                "children": []
+              },
+              {
+                "id": "router_table_port",
+                "pipe_diameter_inches": 4,
+                "blast_gate": {
+                  "id": "gate_router_table",
+                  "diameter_inches": 4,
+                  "pwm_board": 0,
+                  "pwm_channel": 6,
+                  "led_index": 6,
+                  "servo_open_angle": 90,
+                  "servo_close_angle": 0
+                },
+                "children": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "tools": [
+    {
+      "id": "table_saw",
+      "name": "Table Saw",
+      "adc_board": 0,
+      "adc_channel": 0,
+      "current_threshold_amps": 10,
+      "required_cfm": 800,
+      "node_ids": ["table_saw_bottom_port", "table_saw_guard_port"]
+    },
+    {
+      "id": "jointer",
+      "name": "Jointer",
+      "adc_board": 0,
+      "adc_channel": 1,
+      "current_threshold_amps": 10,
+      "required_cfm": 500,
+      "node_ids": ["jointer_port"]
+    },
+    {
+      "id": "bandsaw",
+      "name": "Band Saw",
+      "adc_board": 0,
+      "adc_channel": 2,
+      "current_threshold_amps": 10,
+      "required_cfm": 1100,
+      "node_ids": ["bandsaw_port"]
+    },
+    {
+      "id": "router_table",
+      "name": "Router Table",
+      "adc_board": 0,
+      "adc_channel": 3,
+      "current_threshold_amps": 10,
+      "required_cfm": 400,
+      "node_ids": ["router_table_port"]
+    },
+    {
+      "id": "planer",
+      "name": "Planer",
+      "adc_board": 0,
+      "adc_channel": 4,
+      "current_threshold_amps": 10,
+      "required_cfm": 600,
+      "node_ids": ["planer_port"]
+    },
+    {
+      "id": "drum_sander",
+      "name": "Drum Sander",
+      "adc_board": 0,
+      "adc_channel": 5,
+      "current_threshold_amps": 10,
+      "required_cfm": 300,
+      "node_ids": ["drum_sander_port"]
+    }
+  ],
+  "manual_triggers": [
+    {
+      "id": "lathe",
+      "name": "Lathe",
+      "gpio_pin": 22,
+      "node_ids": ["lathe_port"],
+      "required_cfm": 500
+    },
+    {
+      "id": "floor_sweep",
+      "name": "Floor Sweep",
+      "gpio_pin": 23,
+      "node_ids": ["floor_sweep_port"],
+      "required_cfm": 400
+    },
+    {
+      "id": "assembly_table1",
+      "name": "Assembly Table",
+      "gpio_pin": 24,
+      "node_ids": ["assembly_table_port1"],
+      "required_cfm": 400
+    },
+    {
+      "id": "assembly_table2",
+      "name": "Assembly Table 2",
+      "gpio_pin": 25,
+      "node_ids": ["assembly_table_port2"],
+      "required_cfm": 400
+    }
+  ]
+}
