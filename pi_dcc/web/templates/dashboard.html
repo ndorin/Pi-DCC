@@ -13,6 +13,14 @@
             <div id="collector-status" class="status-badge off">Collector: OFF</div>
         </header>
 
+        <nav class="tab-nav">
+            <button class="tab-btn active" data-tab="status">Status</button>
+            <button class="tab-btn" data-tab="network">Network Layout</button>
+        </nav>
+
+        <!-- Status Tab -->
+        <div id="tab-status" class="tab-content active">
+
         <section class="stats-grid">
             <div class="stat-card">
                 <div class="stat-label">Current Airflow</div>
@@ -59,6 +67,22 @@
         <section class="panel actions">
             <button id="btn-filter-reset" class="btn btn-warning">Reset Filter Counter</button>
         </section>
+        </div>
+
+        <!-- Network Layout Tab -->
+        <div id="tab-network" class="tab-content">
+            <section class="panel network-panel">
+                <div class="network-legend">
+                    <span class="legend-item"><span class="legend-dot collector-dot"></span> Collector</span>
+                    <span class="legend-item"><span class="legend-dot pipe-dot"></span> Pipe</span>
+                    <span class="legend-item"><span class="legend-dot gate-closed-dot"></span> Gate (closed)</span>
+                    <span class="legend-item"><span class="legend-dot gate-open-dot"></span> Gate (open)</span>
+                    <span class="legend-item"><span class="legend-dot tool-dot"></span> Tool</span>
+                    <span class="legend-item"><span class="legend-dot trigger-dot"></span> Manual Trigger</span>
+                </div>
+                <div id="network-diagram"></div>
+            </section>
+        </div>
     </div>
 
     <script>
@@ -157,6 +181,193 @@
         // Poll for updates
         fetchStatus();
         setInterval(fetchStatus, POLL_INTERVAL);
+
+        // ===== Tab Navigation =====
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+                if (btn.dataset.tab === 'network' && !networkLoaded) {
+                    loadNetwork();
+                }
+            });
+        });
+
+        // ===== Network Diagram =====
+        let networkLoaded = false;
+        let networkData = null;
+        let toolMap = {};
+
+        async function loadNetwork() {
+            try {
+                const resp = await fetch('/api/network');
+                if (!resp.ok) return;
+                const data = await resp.json();
+                networkData = data.network;
+                toolMap = data.tool_map;
+                networkLoaded = true;
+                renderNetwork();
+            } catch (e) {
+                console.error('Failed to load network:', e);
+            }
+        }
+
+        function renderNetwork() {
+            if (!networkData) return;
+
+            const container = document.getElementById('network-diagram');
+            const layout = computeLayout(networkData);
+
+            const width = layout.width + 40;
+            const height = layout.height + 40;
+
+            let svg = `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">`;
+            svg += renderNode(networkData, layout.positions, 20, 20);
+            svg += '</svg>';
+            container.innerHTML = svg;
+        }
+
+        function computeLayout(node) {
+            // Compute positions using a simple top-down tree layout
+            const NODE_W = 160;
+            const NODE_H = 70;
+            const H_GAP = 20;
+            const V_GAP = 80;
+
+            const positions = {};
+            const leafWidths = {};
+
+            function getSubtreeWidth(n) {
+                if (n.children.length === 0) {
+                    leafWidths[n.id] = NODE_W;
+                    return NODE_W;
+                }
+                let total = 0;
+                for (const child of n.children) {
+                    total += getSubtreeWidth(child);
+                }
+                total += (n.children.length - 1) * H_GAP;
+                leafWidths[n.id] = total;
+                return total;
+            }
+
+            const totalWidth = getSubtreeWidth(node);
+
+            function assignPositions(n, x, y) {
+                const w = leafWidths[n.id];
+                positions[n.id] = { x: x + w / 2, y: y, w: NODE_W, h: NODE_H };
+
+                let childX = x;
+                for (const child of n.children) {
+                    const childW = leafWidths[child.id];
+                    assignPositions(child, childX, y + NODE_H + V_GAP);
+                    childX += childW + H_GAP;
+                }
+            }
+
+            assignPositions(node, 0, 0);
+            const maxY = Math.max(...Object.values(positions).map(p => p.y));
+
+            return { positions, width: totalWidth, height: maxY + NODE_H };
+        }
+
+        function renderNode(node, positions, offsetX, offsetY) {
+            const pos = positions[node.id];
+            const cx = pos.x + offsetX;
+            const cy = pos.y + offsetY;
+            let svg = '';
+
+            // Draw connections to children
+            for (const child of node.children) {
+                const childPos = positions[child.id];
+                const childCx = childPos.x + offsetX;
+                const childCy = childPos.y + offsetY;
+
+                // Pipe thickness based on diameter
+                const pipeWidth = Math.max(2, (child.pipe_diameter_inches || 4) * 1.2);
+                const midY = cy + pos.h / 2 + (childCy - cy - pos.h / 2) / 2;
+
+                svg += `<path d="M${cx},${cy + pos.h / 2} L${cx},${midY} L${childCx},${midY} L${childCx},${childCy - pos.h / 2}"
+                    fill="none" stroke="#5a7a9a" stroke-width="${pipeWidth}" stroke-linecap="round"/>`;
+                // Pipe diameter label
+                svg += `<text x="${(cx + childCx) / 2 + 10}" y="${midY - 5}" class="pipe-label">${child.pipe_diameter_inches}"</text>`;
+            }
+
+            // Determine node type and appearance
+            const isCollector = node.id === networkData.id && !node.blast_gate;
+            const hasGate = !!node.blast_gate;
+            const tools = toolMap[node.id] || [];
+
+            let fillColor = '#2c3e50'; // pipe junction
+            let strokeColor = '#5a7a9a';
+            let label = node.id;
+            let sublabel = '';
+            let nodeClass = 'node-pipe';
+
+            if (isCollector) {
+                fillColor = '#8e44ad';
+                strokeColor = '#9b59b6';
+                label = 'Dust Collector';
+                sublabel = `${networkData.pipe_diameter_inches}" main`;
+                nodeClass = 'node-collector';
+            } else if (hasGate) {
+                const gateId = node.blast_gate.id;
+                const isOpen = currentStatus && (
+                    currentStatus.open_gates.includes(gateId) ||
+                    currentStatus.supplemental_gates.includes(gateId)
+                );
+                fillColor = isOpen ? '#1e8449' : '#922b21';
+                strokeColor = isOpen ? '#2ecc71' : '#e74c3c';
+                label = node.blast_gate.id.replace('gate_', '').replace(/_/g, ' ');
+                sublabel = `${node.blast_gate.diameter_inches}" gate`;
+                nodeClass = isOpen ? 'node-gate-open' : 'node-gate-closed';
+            }
+
+            // Draw node box
+            const boxW = pos.w - 20;
+            const boxH = pos.h - 10;
+            const boxX = cx - boxW / 2;
+            const boxY = cy - boxH / 2;
+            const radius = 8;
+
+            svg += `<rect x="${boxX}" y="${boxY}" width="${boxW}" height="${boxH}" rx="${radius}"
+                fill="${fillColor}" stroke="${strokeColor}" stroke-width="2" class="${nodeClass}"/>`;
+
+            // Label
+            svg += `<text x="${cx}" y="${cy - 4}" text-anchor="middle" class="node-label">${label}</text>`;
+            if (sublabel) {
+                svg += `<text x="${cx}" y="${cy + 12}" text-anchor="middle" class="node-sublabel">${sublabel}</text>`;
+            }
+
+            // Tool/trigger labels below the node
+            if (tools.length > 0) {
+                for (let i = 0; i < tools.length; i++) {
+                    const t = tools[i];
+                    const ty = boxY + boxH + 14 + (i * 16);
+                    const tColor = t.type === 'tool' ? '#3498db' : '#9b59b6';
+                    const icon = t.type === 'tool' ? '⚡' : '🔘';
+                    svg += `<text x="${cx}" y="${ty}" text-anchor="middle" class="tool-label" fill="${tColor}">${icon} ${t.name}</text>`;
+                }
+            }
+
+            // Recurse to children
+            for (const child of node.children) {
+                svg += renderNode(child, positions, offsetX, offsetY);
+            }
+
+            return svg;
+        }
+
+        // Keep current status reference for network coloring
+        let currentStatus = null;
+        const origUpdateDashboard = updateDashboard;
+        updateDashboard = function(data) {
+            currentStatus = data;
+            origUpdateDashboard(data);
+            if (networkLoaded) renderNetwork();
+        };
     </script>
 </body>
 </html>

@@ -13,7 +13,7 @@ body {
 }
 
 .container {
-    max-width: 800px;
+    max-width: 1200px;
     margin: 0 auto;
 }
 
@@ -170,4 +170,112 @@ h2 {
 .btn-warning {
     background: #f39c12;
     color: #000;
+}
+
+/* Tab Navigation */
+.tab-nav {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.tab-btn {
+    padding: 0.5rem 1.2rem;
+    border: 1px solid #333;
+    border-radius: 0.5rem;
+    background: #16213e;
+    color: #888;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.tab-btn.active {
+    background: #2c3e50;
+    color: #fff;
+    border-color: #3498db;
+}
+
+.tab-btn:hover {
+    color: #ccc;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Network Diagram */
+.network-panel {
+    overflow-x: auto;
+    padding-bottom: 1.5rem;
+}
+
+.network-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #333;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    color: #aaa;
+}
+
+.legend-dot {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+}
+
+.collector-dot { background: #8e44ad; }
+.pipe-dot { background: #2c3e50; border: 1px solid #5a7a9a; }
+.gate-closed-dot { background: #922b21; border: 1px solid #e74c3c; }
+.gate-open-dot { background: #1e8449; border: 1px solid #2ecc71; }
+.tool-dot { background: #2471a3; border: 1px solid #3498db; }
+.trigger-dot { background: #6c3483; border: 1px solid #9b59b6; }
+
+#network-diagram {
+    min-height: 200px;
+    text-align: center;
+}
+
+#network-diagram svg {
+    max-width: 100%;
+    height: auto;
+}
+
+#network-diagram .node-label {
+    fill: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+#network-diagram .node-sublabel {
+    fill: #aaa;
+    font-size: 9px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+#network-diagram .pipe-label {
+    fill: #777;
+    font-size: 9px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+#network-diagram .tool-label {
+    font-size: 10px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
