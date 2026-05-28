@@ -41,6 +41,7 @@ def api_status():
         return jsonify({"error": "System not initialized"}), 503
 
     state = _engine.state.to_dict()
+    state["web_overrides"] = _engine.get_web_overrides()
     return jsonify(state)
 
 
@@ -92,3 +93,37 @@ def api_network():
         "network": serialize_node(_config.network),
         "tool_map": tool_map,
     })
+
+
+@app.route("/api/override/toggle", methods=["POST"])
+def api_override_toggle():
+    """Toggle a web override for a specific node (simulates tool activity)."""
+    if _engine is None:
+        return jsonify({"error": "System not initialized"}), 503
+
+    data = request.get_json(silent=True)
+    if not data or "node_id" not in data:
+        return jsonify({"error": "Missing node_id"}), 400
+
+    node_id = data["node_id"]
+    is_active = _engine.toggle_web_override(node_id)
+    return jsonify({"status": "ok", "node_id": node_id, "active": is_active})
+
+
+@app.route("/api/override/stop-all", methods=["POST"])
+def api_override_stop_all():
+    """Clear all web overrides (close all web-triggered gates)."""
+    if _engine is None:
+        return jsonify({"error": "System not initialized"}), 503
+
+    _engine.stop_all()
+    return jsonify({"status": "ok", "message": "All web overrides cleared"})
+
+
+@app.route("/api/override/status")
+def api_override_status():
+    """Get the list of currently active web override node IDs."""
+    if _engine is None:
+        return jsonify({"error": "System not initialized"}), 503
+
+    return jsonify({"overrides": _engine.get_web_overrides()})

@@ -72,13 +72,17 @@
         <!-- Network Layout Tab -->
         <div id="tab-network" class="tab-content">
             <section class="panel network-panel">
-                <div class="network-legend">
-                    <span class="legend-item"><span class="legend-dot collector-dot"></span> Collector</span>
-                    <span class="legend-item"><span class="legend-dot pipe-dot"></span> Pipe</span>
-                    <span class="legend-item"><span class="legend-dot gate-closed-dot"></span> Gate (closed)</span>
-                    <span class="legend-item"><span class="legend-dot gate-open-dot"></span> Gate (open)</span>
-                    <span class="legend-item"><span class="legend-dot tool-dot"></span> Tool</span>
-                    <span class="legend-item"><span class="legend-dot trigger-dot"></span> Manual Trigger</span>
+                <div class="network-controls">
+                    <div class="network-legend">
+                        <span class="legend-item"><span class="legend-dot collector-dot"></span> Collector</span>
+                        <span class="legend-item"><span class="legend-dot pipe-dot"></span> Pipe</span>
+                        <span class="legend-item"><span class="legend-dot gate-closed-dot"></span> Gate (closed)</span>
+                        <span class="legend-item"><span class="legend-dot gate-open-dot"></span> Gate (open)</span>
+                        <span class="legend-item"><span class="legend-dot tool-dot"></span> Tool</span>
+                        <span class="legend-item"><span class="legend-dot trigger-dot"></span> Manual Trigger</span>
+                        <span class="legend-item"><span class="legend-dot override-dot"></span> Web Override</span>
+                    </div>
+                    <button id="btn-stop-all" class="btn btn-danger">Stop All &amp; Close Gates</button>
                 </div>
                 <div id="network-diagram"></div>
             </section>
@@ -221,20 +225,46 @@
             const layout = computeLayout(networkData);
 
             const width = layout.width + 40;
-            const height = layout.height + 40;
+            const height = layout.height + 60;
 
-            let svg = `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">`;
-            svg += renderNode(networkData, layout.positions, 20, 20);
-            svg += '</svg>';
-            container.innerHTML = svg;
+            let html = `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">`;
+            html += renderNode(networkData, layout.positions, 20, 20);
+            html += '</svg>';
+            container.innerHTML = html;
+
+            // Attach click handlers to toggle buttons
+            container.querySelectorAll('.gate-toggle-btn').forEach(btn => {
+                btn.addEventListener('click', () => toggleGateOverride(btn.dataset.nodeId));
+            });
         }
 
+        async function toggleGateOverride(nodeId) {
+            try {
+                const resp = await fetch('/api/override/toggle', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ node_id: nodeId })
+                });
+                if (resp.ok) fetchStatus();
+            } catch (e) {
+                console.error('Failed to toggle override:', e);
+            }
+        }
+
+        document.getElementById('btn-stop-all').addEventListener('click', async () => {
+            try {
+                const resp = await fetch('/api/override/stop-all', { method: 'POST' });
+                if (resp.ok) fetchStatus();
+            } catch (e) {
+                console.error('Failed to stop all:', e);
+            }
+        });
+
         function computeLayout(node) {
-            // Compute positions using a simple top-down tree layout
-            const NODE_W = 160;
-            const NODE_H = 70;
+            const NODE_W = 170;
+            const NODE_H = 90;
             const H_GAP = 20;
-            const V_GAP = 80;
+            const V_GAP = 90;
 
             const positions = {};
             const leafWidths = {};
@@ -285,13 +315,11 @@
                 const childCx = childPos.x + offsetX;
                 const childCy = childPos.y + offsetY;
 
-                // Pipe thickness based on diameter
                 const pipeWidth = Math.max(2, (child.pipe_diameter_inches || 4) * 1.2);
                 const midY = cy + pos.h / 2 + (childCy - cy - pos.h / 2) / 2;
 
                 svg += `<path d="M${cx},${cy + pos.h / 2} L${cx},${midY} L${childCx},${midY} L${childCx},${childCy - pos.h / 2}"
                     fill="none" stroke="#5a7a9a" stroke-width="${pipeWidth}" stroke-linecap="round"/>`;
-                // Pipe diameter label
                 svg += `<text x="${(cx + childCx) / 2 + 10}" y="${midY - 5}" class="pipe-label">${child.pipe_diameter_inches}"</text>`;
             }
 
@@ -299,10 +327,12 @@
             const isCollector = node.id === networkData.id && !node.blast_gate;
             const hasGate = !!node.blast_gate;
             const tools = toolMap[node.id] || [];
+            const isOverridden = currentStatus && currentStatus.web_overrides &&
+                currentStatus.web_overrides.includes(node.id);
 
-            let fillColor = '#2c3e50'; // pipe junction
+            let fillColor = '#2c3e50';
             let strokeColor = '#5a7a9a';
-            let label = node.id;
+            let label = node.id.replace(/_/g, ' ');
             let sublabel = '';
             let nodeClass = 'node-pipe';
 
@@ -318,8 +348,16 @@
                     currentStatus.open_gates.includes(gateId) ||
                     currentStatus.supplemental_gates.includes(gateId)
                 );
-                fillColor = isOpen ? '#1e8449' : '#922b21';
-                strokeColor = isOpen ? '#2ecc71' : '#e74c3c';
+                if (isOverridden) {
+                    fillColor = '#1a5276';
+                    strokeColor = '#5dade2';
+                } else if (isOpen) {
+                    fillColor = '#1e8449';
+                    strokeColor = '#2ecc71';
+                } else {
+                    fillColor = '#922b21';
+                    strokeColor = '#e74c3c';
+                }
                 label = node.blast_gate.id.replace('gate_', '').replace(/_/g, ' ');
                 sublabel = `${node.blast_gate.diameter_inches}" gate`;
                 nodeClass = isOpen ? 'node-gate-open' : 'node-gate-closed';
@@ -336,9 +374,27 @@
                 fill="${fillColor}" stroke="${strokeColor}" stroke-width="2" class="${nodeClass}"/>`;
 
             // Label
-            svg += `<text x="${cx}" y="${cy - 4}" text-anchor="middle" class="node-label">${label}</text>`;
+            svg += `<text x="${cx}" y="${cy - 14}" text-anchor="middle" class="node-label">${label}</text>`;
             if (sublabel) {
-                svg += `<text x="${cx}" y="${cy + 12}" text-anchor="middle" class="node-sublabel">${sublabel}</text>`;
+                svg += `<text x="${cx}" y="${cy}" text-anchor="middle" class="node-sublabel">${sublabel}</text>`;
+            }
+
+            // Toggle button (for nodes with blast gates)
+            if (hasGate) {
+                const btnW = 60;
+                const btnH = 20;
+                const btnX = cx - btnW / 2;
+                const btnY = cy + 8;
+                const btnFill = isOverridden ? '#5dade2' : '#444';
+                const btnText = isOverridden ? 'ON' : 'OFF';
+                const btnTextColor = isOverridden ? '#000' : '#aaa';
+
+                svg += `<foreignObject x="${btnX}" y="${btnY}" width="${btnW}" height="${btnH}">
+                    <button xmlns="http://www.w3.org/1999/xhtml" class="gate-toggle-btn" data-node-id="${node.id}"
+                        style="width:100%;height:100%;border:none;border-radius:4px;background:${btnFill};color:${btnTextColor};font-size:10px;font-weight:700;cursor:pointer;">
+                        ${btnText}
+                    </button>
+                </foreignObject>`;
             }
 
             // Tool/trigger labels below the node

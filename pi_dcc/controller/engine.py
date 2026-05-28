@@ -98,6 +98,9 @@ class ControlEngine:
         self._collector_start_time: float | None = None
         self._running = False
 
+        # Web-triggered overrides: node IDs toggled from the web UI
+        self._web_override_nodes: set[str] = set()
+
         # Load persisted state
         self._load_persisted_state()
 
@@ -138,6 +141,26 @@ class ControlEngine:
         self._state.last_filter_reset_timestamp = time.time()
         self._save_persisted_state()
         logger.info("Filter runtime counter reset")
+
+    def toggle_web_override(self, node_id: str) -> bool:
+        """Toggle a node from the web UI. Returns True if now active."""
+        if node_id in self._web_override_nodes:
+            self._web_override_nodes.discard(node_id)
+            logger.info("Web override removed for node: %s", node_id)
+            return False
+        else:
+            self._web_override_nodes.add(node_id)
+            logger.info("Web override added for node: %s", node_id)
+            return True
+
+    def get_web_overrides(self) -> list[str]:
+        """Get list of currently active web override node IDs."""
+        return list(self._web_override_nodes)
+
+    def stop_all(self) -> None:
+        """Clear all web overrides, effectively requesting system shutdown."""
+        self._web_override_nodes.clear()
+        logger.info("All web overrides cleared (stop all)")
 
     @property
     def state(self) -> SystemState:
@@ -202,6 +225,9 @@ class ControlEngine:
             if trigger.id in active_trigger_ids:
                 active_node_ids.extend(trigger.node_ids)
 
+        # Add nodes from web overrides
+        active_node_ids.extend(self._web_override_nodes)
+
         required_gates = get_gates_for_tools(self._network, active_node_ids)
         required_gate_ids = {g.id for g in required_gates}
 
@@ -216,8 +242,8 @@ class ControlEngine:
             if trigger.id in active_trigger_ids:
                 active_cfm_values.append(trigger.required_cfm)
 
-        # Determine if anything is active (tools or triggers)
-        anything_active = bool(active_tools) or bool(active_trigger_ids)
+        # Determine if anything is active (tools, triggers, or web overrides)
+        anything_active = bool(active_tools) or bool(active_trigger_ids) or bool(self._web_override_nodes)
 
         supplemental_gates: list[BlastGateConfig] = []
         if anything_active and not is_airflow_sufficient(
