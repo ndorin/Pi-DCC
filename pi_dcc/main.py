@@ -42,6 +42,11 @@ def parse_args() -> argparse.Namespace:
         help="Simulate only the ADC (CT sensors) while using real hardware for servos, relay, LEDs, and buttons",
     )
     parser.add_argument(
+        "--simulate-buttons",
+        action="store_true",
+        help="Simulate only the button inputs while using real hardware for everything else",
+    )
+    parser.add_argument(
         "--web-port",
         type=int,
         default=5000,
@@ -82,11 +87,12 @@ async def main_async(args: argparse.Namespace) -> None:
     # Initialize hardware
     simulate = args.simulate
     simulate_adc = simulate or args.simulate_adc
+    simulate_buttons = simulate or args.simulate_buttons
     adc = ADCReader(config.adc_boards, simulate=simulate_adc)
     servos = ServoController(config.pwm_boards, simulate=simulate)
     relay = RelayController(config.dust_collector.relay_pin, simulate=simulate)
     leds = LEDController(config.neopixel, simulate=simulate)
-    buttons = ButtonController(config.manual_triggers, simulate=simulate)
+    buttons = ButtonController(config.manual_triggers, simulate=simulate_buttons)
 
     # Create control engine
     engine = ControlEngine(
