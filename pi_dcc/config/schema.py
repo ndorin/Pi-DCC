@@ -76,6 +76,8 @@ class BlastGateConfig(BaseModel):
     led_index: int = Field(description="Index of this gate's LED in the NeoPixel strip")
     servo_open_angle: int = Field(default=90, description="Servo angle for gate open position")
     servo_close_angle: int = Field(default=0, description="Servo angle for gate closed position")
+    servo_min_pulse: int = Field(default=500, description="Minimum pulse width in microseconds (0 degrees)")
+    servo_max_pulse: int = Field(default=2500, description="Maximum pulse width in microseconds (180 degrees)")
 
 
 class PipeNodeConfig(BaseModel):

@@ -77,5 +77,9 @@ class ServoController:
             return
 
         pca = self._boards[gate.pwm_board]
-        srv = servo_module.Servo(pca.channels[gate.pwm_channel])
+        srv = servo_module.Servo(
+            pca.channels[gate.pwm_channel],
+            min_pulse=gate.servo_min_pulse,
+            max_pulse=gate.servo_max_pulse,
+        )
         srv.angle = angle
