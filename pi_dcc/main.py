@@ -22,6 +22,39 @@ from pi_dcc.web.app import init_app
 logger = logging.getLogger("pi_dcc")
 
 
+class GPIOServoWrapper:
+    """Wraps ServoController to intercept specific gates and route to GPIO servo."""
+
+    def __init__(self, pca_controller: ServoController, gpio_servo):
+        self._pca = pca_controller
+        self._gpio = gpio_servo
+        self._gate_states: dict[str, bool] = {}
+
+    def open_gate(self, gate):
+        if self._gpio.has_gate(gate.id):
+            self._gpio.set_angle(gate, gate.servo_open_angle)
+        else:
+            self._pca.open_gate(gate)
+        self._gate_states[gate.id] = True
+
+    def close_gate(self, gate):
+        if self._gpio.has_gate(gate.id):
+            self._gpio.set_angle(gate, gate.servo_close_angle)
+        else:
+            self._pca.close_gate(gate)
+        self._gate_states[gate.id] = False
+
+    def is_gate_open(self, gate_id: str) -> bool:
+        return self._gate_states.get(gate_id, False)
+
+    def get_all_gate_states(self) -> dict[str, bool]:
+        return dict(self._gate_states)
+
+    def close_all(self, all_gates):
+        for gate in all_gates:
+            self.close_gate(gate)
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Pi-DCC: Dust Collection Control for Raspberry Pi"
@@ -39,12 +72,35 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--simulate-adc",
         action="store_true",
-        help="Simulate only the ADC (CT sensors) while using real hardware for servos, relay, LEDs, and buttons",
+        help="Simulate only the ADC (CT sensors)",
     )
     parser.add_argument(
         "--simulate-buttons",
         action="store_true",
-        help="Simulate only the button inputs while using real hardware for everything else",
+        help="Simulate only the button inputs",
+    )
+    parser.add_argument(
+        "--simulate-servos",
+        action="store_true",
+        help="Simulate only the servo/PCA9685 outputs",
+    )
+    parser.add_argument(
+        "--simulate-leds",
+        action="store_true",
+        help="Simulate only the NeoPixel LEDs",
+    )
+    parser.add_argument(
+        "--simulate-relay",
+        action="store_true",
+        help="Simulate only the relay output",
+    )
+    parser.add_argument(
+        "--gpio-servo",
+        type=str,
+        action="append",
+        default=[],
+        metavar="GATE_ID:GPIO_PIN",
+        help="Map a blast gate to a GPIO pin for direct servo control (e.g. gate_floor_sweep:12). Can be repeated.",
     )
     parser.add_argument(
         "--web-port",
@@ -88,11 +144,24 @@ async def main_async(args: argparse.Namespace) -> None:
     simulate = args.simulate
     simulate_adc = simulate or args.simulate_adc
     simulate_buttons = simulate or args.simulate_buttons
+    simulate_servos = simulate or args.simulate_servos
+    simulate_leds = simulate or args.simulate_leds
+    simulate_relay = simulate or args.simulate_relay
     adc = ADCReader(config.adc_boards, simulate=simulate_adc)
-    servos = ServoController(config.pwm_boards, simulate=simulate)
-    relay = RelayController(config.dust_collector.relay_pin, simulate=simulate)
-    leds = LEDController(config.neopixel, simulate=simulate)
+    servos = ServoController(config.pwm_boards, simulate=simulate_servos)
+    relay = RelayController(config.dust_collector.relay_pin, simulate=simulate_relay)
+    leds = LEDController(config.neopixel, simulate=simulate_leds)
     buttons = ButtonController(config.manual_triggers, simulate=simulate_buttons)
+
+    # Apply GPIO servo overrides for testing
+    if args.gpio_servo:
+        from pi_dcc.hardware.gpio_servo import GPIOServoController
+        gpio_servo_map = {}
+        for mapping in args.gpio_servo:
+            gate_id, pin = mapping.rsplit(':', 1)
+            gpio_servo_map[gate_id] = int(pin)
+        gpio_servo = GPIOServoController(gpio_servo_map)
+        servos = GPIOServoWrapper(servos, gpio_servo)
 
     # Create control engine
     engine = ControlEngine(

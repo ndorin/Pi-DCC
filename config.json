@@ -1,7 +1,7 @@
 {
   "dust_collector": {
     "relay_pin": 17,
-    "shutdown_delay_seconds": 10,
+    "shutdown_delay_seconds": 15,
     "max_cfm": 1200,
     "motor_hp": 3.0,
     "filter_clean_interval_hours": 50
@@ -36,7 +36,9 @@
               "pwm_channel": 5,
               "led_index": 5,
               "servo_open_angle": 90,
-              "servo_close_angle": 0
+              "servo_close_angle": 0,
+              "servo_min_pulse": 500,
+              "servo_max_pulse": 2700
             },
             "children": []
           },
@@ -50,7 +52,9 @@
               "pwm_channel": 7,
               "led_index": 7,
               "servo_open_angle": 90,
-              "servo_close_angle": 0
+              "servo_close_angle": 0,
+              "servo_min_pulse": 500,
+              "servo_max_pulse": 2700
             },
             "children": []
           },
@@ -64,7 +68,9 @@
               "pwm_channel": 9,
               "led_index": 9,
               "servo_open_angle": 90,
-              "servo_close_angle": 0
+              "servo_close_angle": 0,
+              "servo_min_pulse": 500,
+              "servo_max_pulse": 2700
             },
             "children": []
           },
@@ -92,7 +98,9 @@
               "pwm_channel": 3,
               "led_index": 3,
               "servo_open_angle": 90,
-              "servo_close_angle": 0
+              "servo_close_angle": 0,
+              "servo_min_pulse": 500,
+              "servo_max_pulse": 2700
             },
             "children": []
           },
@@ -208,7 +216,7 @@
       "adc_board": 0,
       "adc_channel": 0,
       "current_threshold_amps": 10,
-      "required_cfm": 800,
+      "required_cfm": 1000,
       "node_ids": ["table_saw_bottom_port", "table_saw_guard_port"]
     },
     {
@@ -217,7 +225,7 @@
       "adc_board": 0,
       "adc_channel": 1,
       "current_threshold_amps": 10,
-      "required_cfm": 500,
+      "required_cfm": 900,
       "node_ids": ["jointer_port"]
     },
     {
@@ -235,7 +243,7 @@
       "adc_board": 0,
       "adc_channel": 3,
       "current_threshold_amps": 10,
-      "required_cfm": 400,
+      "required_cfm": 600,
       "node_ids": ["router_table_port"]
     },
     {
@@ -244,7 +252,7 @@
       "adc_board": 0,
       "adc_channel": 4,
       "current_threshold_amps": 10,
-      "required_cfm": 600,
+      "required_cfm": 900,
       "node_ids": ["planer_port"]
     },
     {
@@ -253,7 +261,7 @@
       "adc_board": 0,
       "adc_channel": 5,
       "current_threshold_amps": 10,
-      "required_cfm": 300,
+      "required_cfm": 600,
       "node_ids": ["drum_sander_port"]
     }
   ],
@@ -263,28 +271,28 @@
       "name": "Lathe",
       "gpio_pin": 22,
       "node_ids": ["lathe_port"],
-      "required_cfm": 500
+      "required_cfm": 900
     },
     {
       "id": "floor_sweep",
       "name": "Floor Sweep",
       "gpio_pin": 23,
       "node_ids": ["floor_sweep_port"],
-      "required_cfm": 400
+      "required_cfm": 600
     },
     {
       "id": "assembly_table1",
       "name": "Assembly Table",
       "gpio_pin": 24,
       "node_ids": ["assembly_table_port1"],
-      "required_cfm": 400
+      "required_cfm": 600
     },
     {
       "id": "assembly_table2",
       "name": "Assembly Table 2",
       "gpio_pin": 25,
       "node_ids": ["assembly_table_port2"],
-      "required_cfm": 400
+      "required_cfm": 600
     }
   ]
 }
