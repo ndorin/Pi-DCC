@@ -149,8 +149,8 @@
               "led_index": 0,
               "servo_open_angle": 90,
               "servo_close_angle": 0,
-              "servo_min_pulse": 400,
-              "servo_max_pulse": 2600
+              "servo_min_pulse": 500,
+              "servo_max_pulse": 2700
             },
             "children": [
               {
