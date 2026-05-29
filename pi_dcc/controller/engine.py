@@ -263,7 +263,16 @@ class ControlEngine:
 
         # 5. Compute desired gate state
         desired_open_ids = required_gate_ids | {g.id for g in supplemental_gates}
-        all_gates = self._network.get_all_gates()
+
+        # Keep gates open during shutdown delay (don't close until delay expires)
+        if not anything_active and self._shutdown_task and not self._shutdown_task.done():
+            # Preserve currently open gates while shutdown timer is running
+            all_gates = self._network.get_all_gates()
+            for gate in all_gates:
+                if self._servos.is_gate_open(gate.id):
+                    desired_open_ids.add(gate.id)
+        else:
+            all_gates = self._network.get_all_gates()
 
         # 6. Actuate gates (open/close as needed)
         for gate in all_gates:
