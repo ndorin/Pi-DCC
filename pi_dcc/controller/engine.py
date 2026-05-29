@@ -261,20 +261,20 @@ class ControlEngine:
                 self._config.dust_collector.max_cfm,
             )
 
-        # 5. Compute desired gate state
+        # 5. Manage dust collector (before gate actuation so shutdown task exists for gate-hold check)
+        await self._manage_collector(anything_active)
+
+        # 6. Compute desired gate state
         desired_open_ids = required_gate_ids | {g.id for g in supplemental_gates}
 
         # Keep gates open during shutdown delay (don't close until delay expires)
+        all_gates = self._network.get_all_gates()
         if not anything_active and self._shutdown_task and not self._shutdown_task.done():
-            # Preserve currently open gates while shutdown timer is running
-            all_gates = self._network.get_all_gates()
             for gate in all_gates:
                 if self._servos.is_gate_open(gate.id):
                     desired_open_ids.add(gate.id)
-        else:
-            all_gates = self._network.get_all_gates()
 
-        # 6. Actuate gates (open/close as needed)
+        # 7. Actuate gates (open/close as needed)
         for gate in all_gates:
             currently_open = self._servos.is_gate_open(gate.id)
             should_be_open = gate.id in desired_open_ids
@@ -285,9 +285,6 @@ class ControlEngine:
             elif not should_be_open and currently_open:
                 self._servos.close_gate(gate)
                 self._leds.update_gate(gate.led_index, False)
-
-        # 7. Manage dust collector
-        await self._manage_collector(anything_active)
 
         # 8. Update state
         self._state.active_tools = active_tools
