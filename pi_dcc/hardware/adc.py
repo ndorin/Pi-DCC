@@ -72,11 +72,14 @@ class ADCReader:
 
         for attempt in range(self.I2C_RETRIES):
             try:
-                # Sample the waveform and calculate RMS
-                sum_squares = 0.0
+                # Sample the waveform
+                samples = []
                 for _ in range(self.RMS_SAMPLES):
-                    voltage = chan.voltage
-                    sum_squares += voltage * voltage
+                    samples.append(chan.voltage)
+
+                # Subtract DC bias (mean) to isolate AC component
+                dc_offset = sum(samples) / len(samples)
+                sum_squares = sum((s - dc_offset) ** 2 for s in samples)
 
                 rms_voltage = math.sqrt(sum_squares / self.RMS_SAMPLES)
                 return rms_voltage * self.CT_CALIBRATION_FACTOR
