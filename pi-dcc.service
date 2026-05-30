@@ -1,0 +1,16 @@
+[Unit]
+Description=Pi-DCC Dust Collection Control System
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/home/neildorin/Pi-DCC/.venv/bin/python -m pi_dcc.main --config /home/neildorin/Pi-DCC/config.json --simulate-leds --simulate-relay --gpio-servo gate_floor_sweep:12
+WorkingDirectory=/home/neildorin/Pi-DCC
+User=root
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
