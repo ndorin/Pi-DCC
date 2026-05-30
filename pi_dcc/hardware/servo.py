@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import time
 
 from pi_dcc.config.schema import BlastGateConfig, PWMBoardConfig
 
@@ -82,4 +83,13 @@ class ServoController:
             min_pulse=gate.servo_min_pulse,
             max_pulse=gate.servo_max_pulse,
         )
-        srv.angle = angle
+        for attempt in range(3):
+            try:
+                srv.angle = angle
+                return
+            except OSError as e:
+                if attempt < 2:
+                    logger.warning("I2C servo write error (attempt %d/3): %s", attempt + 1, e)
+                    time.sleep(0.05)
+                else:
+                    logger.error("Servo write failed after 3 attempts: %s", e)

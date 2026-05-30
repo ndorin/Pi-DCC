@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import math
+import time
 
 from pi_dcc.config.schema import ADCBoardConfig
 
@@ -25,6 +26,10 @@ class ADCReader:
 
     # Number of samples for RMS calculation
     RMS_SAMPLES = 20
+
+    # Max I2C retries for transient bus errors
+    I2C_RETRIES = 3
+    I2C_RETRY_DELAY = 0.05  # 50ms between retries
 
     # Reference voltage for CT sensor calibration
     # SCT-013-030: 30A/1V, with burden resistor producing voltage proportional to current
@@ -65,14 +70,23 @@ class ADCReader:
         ads = self._boards[board_index]
         chan = AnalogIn(ads, channel)
 
-        # Sample the waveform and calculate RMS
-        sum_squares = 0.0
-        for _ in range(self.RMS_SAMPLES):
-            voltage = chan.voltage
-            sum_squares += voltage * voltage
+        for attempt in range(self.I2C_RETRIES):
+            try:
+                # Sample the waveform and calculate RMS
+                sum_squares = 0.0
+                for _ in range(self.RMS_SAMPLES):
+                    voltage = chan.voltage
+                    sum_squares += voltage * voltage
 
-        rms_voltage = math.sqrt(sum_squares / self.RMS_SAMPLES)
-        return rms_voltage * self.CT_CALIBRATION_FACTOR
+                rms_voltage = math.sqrt(sum_squares / self.RMS_SAMPLES)
+                return rms_voltage * self.CT_CALIBRATION_FACTOR
+            except OSError as e:
+                if attempt < self.I2C_RETRIES - 1:
+                    logger.warning("I2C read error (attempt %d/%d): %s", attempt + 1, self.I2C_RETRIES, e)
+                    time.sleep(self.I2C_RETRY_DELAY)
+                else:
+                    logger.error("I2C read failed after %d attempts: %s", self.I2C_RETRIES, e)
+                    return 0.0
 
     def is_tool_running(
         self, board_index: int, channel: int, threshold_amps: float
