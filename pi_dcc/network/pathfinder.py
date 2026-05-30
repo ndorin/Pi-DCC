@@ -92,8 +92,8 @@ def get_supplemental_gates(
     supplemental: list[tuple[int, BlastGateConfig]] = []
     _find_supplemental(network.root, 0, currently_required_gate_ids, supplemental)
 
-    # Sort by depth (closest to collector first)
-    supplemental.sort(key=lambda x: x[0])
+    # Sort by priority (highest first), then depth (shallowest first)
+    supplemental.sort(key=lambda x: (-x[1].supplemental_priority, x[0]))
     return [gate for _, gate in supplemental]
 
 

@@ -119,7 +119,8 @@
               "pwm_channel": 8,
               "led_index": 8,
               "servo_open_angle": 90,
-              "servo_close_angle": 0
+              "servo_close_angle": 0,
+              "supplemental_priority": 10
             },
             "children": []
           },

@@ -86,6 +86,7 @@ class BlastGateConfig(BaseModel):
     servo_close_angle: int = Field(default=0, description="Servo angle for gate closed position")
     servo_min_pulse: int = Field(default=500, description="Minimum pulse width in microseconds (0 degrees)")
     servo_max_pulse: int = Field(default=2500, description="Maximum pulse width in microseconds (180 degrees)")
+    supplemental_priority: int = Field(default=0, description="Priority for supplemental gate selection (higher = chosen first)")
 
 
 class PipeNodeConfig(BaseModel):
