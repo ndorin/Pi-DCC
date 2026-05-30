@@ -98,6 +98,7 @@ class ToolConfig(BaseModel):
 
     id: str = Field(description="Unique identifier for this tool")
     name: str = Field(description="Human-readable name of the tool")
+    enabled: bool = Field(default=True, description="Whether this tool's CT sensor is wired and active")
     adc_board: int = Field(description="Index of the ADS1115 board for this tool's CT sensor")
     adc_channel: int = Field(description="ADC channel for this tool's CT sensor")
     current_threshold_amps: float = Field(

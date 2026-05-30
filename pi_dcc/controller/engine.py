@@ -305,6 +305,8 @@ class ControlEngine:
         """Poll all CT sensors and return list of active tool IDs."""
         active = []
         for tool in self._config.tools:
+            if not tool.enabled:
+                continue
             if self._adc.is_tool_running(
                 tool.adc_board, tool.adc_channel, tool.current_threshold_amps
             ):

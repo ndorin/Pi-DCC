@@ -213,6 +213,7 @@
     {
       "id": "table_saw",
       "name": "Table Saw",
+      "enabled": true,
       "adc_board": 0,
       "adc_channel": 0,
       "current_threshold_amps": 10,
@@ -222,6 +223,7 @@
     {
       "id": "jointer",
       "name": "Jointer",
+      "enabled": false,
       "adc_board": 0,
       "adc_channel": 1,
       "current_threshold_amps": 10,
@@ -231,6 +233,7 @@
     {
       "id": "bandsaw",
       "name": "Band Saw",
+      "enabled": false,
       "adc_board": 0,
       "adc_channel": 2,
       "current_threshold_amps": 10,
@@ -240,6 +243,7 @@
     {
       "id": "router_table",
       "name": "Router Table",
+      "enabled": false,
       "adc_board": 0,
       "adc_channel": 3,
       "current_threshold_amps": 10,
@@ -249,6 +253,7 @@
     {
       "id": "planer",
       "name": "Planer",
+      "enabled": false,
       "adc_board": 0,
       "adc_channel": 4,
       "current_threshold_amps": 10,
@@ -258,6 +263,7 @@
     {
       "id": "drum_sander",
       "name": "Drum Sander",
+      "enabled": false,
       "adc_board": 0,
       "adc_channel": 5,
       "current_threshold_amps": 10,
