@@ -51,6 +51,14 @@ class NeoPixelConfig(BaseModel):
     )
 
 
+class DisplayConfig(BaseModel):
+    """Configuration for the 7-segment countdown display via 74HC595."""
+
+    data_pin: int = Field(default=5, description="GPIO pin for shift register data (SER)")
+    clock_pin: int = Field(default=6, description="GPIO pin for shift register clock (SRCLK)")
+    latch_pin: int = Field(default=13, description="GPIO pin for shift register latch (RCLK)")
+
+
 class AirflowConfig(BaseModel):
     """Configuration for airflow calculations."""
 
@@ -143,6 +151,9 @@ class AppConfig(BaseModel):
     adc_boards: List[ADCBoardConfig] = Field(default_factory=list)
     pwm_boards: List[PWMBoardConfig] = Field(default_factory=list)
     neopixel: NeoPixelConfig
+    display: Optional[DisplayConfig] = Field(
+        default=None, description="7-segment countdown display configuration"
+    )
     polling_interval_ms: int = Field(
         default=100, description="Sensor polling interval in milliseconds"
     )

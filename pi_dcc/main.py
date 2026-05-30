@@ -13,6 +13,7 @@ from pi_dcc.config.loader import load_config
 from pi_dcc.controller.engine import ControlEngine
 from pi_dcc.hardware.adc import ADCReader
 from pi_dcc.hardware.buttons import ButtonController
+from pi_dcc.hardware.display import DisplayController
 from pi_dcc.hardware.leds import LEDController
 from pi_dcc.hardware.relay import RelayController
 from pi_dcc.hardware.servo import ServoController
@@ -95,6 +96,11 @@ def parse_args() -> argparse.Namespace:
         help="Simulate only the relay output",
     )
     parser.add_argument(
+        "--simulate-display",
+        action="store_true",
+        help="Simulate only the 7-segment countdown display",
+    )
+    parser.add_argument(
         "--gpio-servo",
         type=str,
         action="append",
@@ -153,6 +159,17 @@ async def main_async(args: argparse.Namespace) -> None:
     leds = LEDController(config.neopixel, simulate=simulate_leds)
     buttons = ButtonController(config.manual_triggers, simulate=simulate_buttons)
 
+    # Initialize countdown display (optional)
+    display = None
+    simulate_display = simulate or args.simulate_display
+    if config.display:
+        display = DisplayController(
+            data_pin=config.display.data_pin,
+            clock_pin=config.display.clock_pin,
+            latch_pin=config.display.latch_pin,
+            simulate=simulate_display,
+        )
+
     # Apply GPIO servo overrides for testing
     if args.gpio_servo:
         from pi_dcc.hardware.gpio_servo import GPIOServoController
@@ -172,6 +189,7 @@ async def main_async(args: argparse.Namespace) -> None:
         relay=relay,
         leds=leds,
         buttons=buttons,
+        display=display,
     )
 
     # Start web server in background thread

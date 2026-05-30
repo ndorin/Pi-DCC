@@ -17,9 +17,9 @@
                           [23] [24]
                       GND [25] [26]
                           [27] [28]
-                          [29] [30] GND
-                          [31] [32] GPIO 12 (test servo PWM)
-                          [33] [34] GND
+  Display Data (GPIO 5)  [29] [30] GND
+ Display Clock (GPIO 6)  [31] [32] GPIO 12 (test servo PWM)
+ Display Latch (GPIO 13) [33] [34] GND
                           [35] [36]
                           [37] [38]
                       GND [39] [40]
@@ -33,6 +33,9 @@
 |------|-------------|----------|------------|
 | 2    | 3           | I2C SDA  | PCA9685 SDA, ADS1115 SDA |
 | 3    | 5           | I2C SCL  | PCA9685 SCL, ADS1115 SCL |
+| 5    | 29          | Display Data | 74HC595 pin 14 (SER) |
+| 6    | 31          | Display Clock | 74HC595 pin 11 (SRCLK) |
+| 13   | 33          | Display Latch | 74HC595 pin 12 (RCLK) |
 | 17   | 11          | Relay    | Relay module IN (dust collector on/off) |
 | 18   | 12          | NeoPixel | WS2812B data in (12 LEDs) |
 | 22   | 15          | Button   | Lathe manual trigger (to GND) |
@@ -154,6 +157,80 @@ GPIO 25 (pin 22) ──── Button ──── GND    (Assembly Table 2)
 ```
 
 No external pull-up resistors needed — the Pi's internal pull-ups are enabled in software.
+
+### 7-Segment Countdown Display (5011AS + 74HC595)
+
+Single-digit common-anode display driven by a 74HC595 shift register.
+Shows shutdown countdown: `5.` = 15s, `4.` = 14s, ... `0.` = 10s, `9` = 9s, ... `1` = 1s.
+
+```
+74HC595 Pinout:
+                 ┌───U───┐
+      QB (seg b) ┤ 1  16 ├─── VCC (3.3V)
+      QC (seg c) ┤ 2  15 ├─── QA (seg a)
+      QD (seg d) ┤ 3  14 ├─── SER (data) ←── GPIO 5
+      QE (seg e) ┤ 4  13 ├─── OE ──── GND (always enabled)
+      QF (seg f) ┤ 5  12 ├─── RCLK (latch) ←── GPIO 13
+      QG (seg g) ┤ 6  11 ├─── SRCLK (clock) ←── GPIO 6
+      QH (DP)    ┤ 7  10 ├─── SRCLR ──── 3.3V (don't clear)
+      GND        ┤ 8   9 ├─── QH' (not used)
+                 └───────┘
+
+74HC595 outputs → 220Ω resistors → 7-segment display:
+
+  QA (pin 15) ── 220Ω ── Display pin 7  (segment a)
+  QB (pin 1)  ── 220Ω ── Display pin 6  (segment b)
+  QC (pin 2)  ── 220Ω ── Display pin 4  (segment c)
+  QD (pin 3)  ── 220Ω ── Display pin 2  (segment d)
+  QE (pin 4)  ── 220Ω ── Display pin 1  (segment e)
+  QF (pin 5)  ── 220Ω ── Display pin 9  (segment f)
+  QG (pin 6)  ── 220Ω ── Display pin 10 (segment g)
+  QH (pin 7)  ── 220Ω ── Display pin 5  (decimal point)
+
+5011AS display (common anode, 10 pins):
+  Pin 3, Pin 8 (COM) ──── 3.3V
+```
+
+```
+        ___a___
+       |       |
+       f       b
+       |___g___|
+       |       |
+       e       c
+       |___d___| .DP
+```
+
+**5011AS Pin Identification** (hold display with decimal point in bottom-right):
+
+```
+    Top row (back):  10  9  8  7  6
+                      ○  ○  ○  ○  ○
+    
+                  ┌─────────────────┐
+                  │     ___         │
+                  │    |   |        │
+                  │    |___|        │
+                  │    |   |        │
+                  │    |___| .      │  ← decimal point bottom-right
+                  └─────────────────┘
+    
+    Bottom row:    1  2  3  4  5
+                   ○  ○  ○  ○  ○
+```
+
+| Pin | Function |
+|-----|----------|
+| 1   | Segment e |
+| 2   | Segment d |
+| 3   | COM (anode → 3.3V) |
+| 4   | Segment c |
+| 5   | Decimal point |
+| 6   | Segment b |
+| 7   | Segment a |
+| 8   | COM (anode → 3.3V) |
+| 9   | Segment f |
+| 10  | Segment g |
 
 ---
 

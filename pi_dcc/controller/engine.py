@@ -17,6 +17,7 @@ from pi_dcc.airflow.calculator import (
 from pi_dcc.config.schema import AppConfig, BlastGateConfig
 from pi_dcc.hardware.adc import ADCReader
 from pi_dcc.hardware.buttons import ButtonController
+from pi_dcc.hardware.display import DisplayController
 from pi_dcc.hardware.leds import LEDController
 from pi_dcc.hardware.relay import RelayController
 from pi_dcc.hardware.servo import ServoController
@@ -78,6 +79,7 @@ class ControlEngine:
         relay: RelayController,
         leds: LEDController,
         buttons: ButtonController,
+        display: DisplayController | None = None,
         state_file_path: str | Path = STATE_FILE,
     ):
         self._config = config
@@ -87,6 +89,7 @@ class ControlEngine:
         self._relay = relay
         self._leds = leds
         self._buttons = buttons
+        self._display = display
         self._state_file = Path(state_file_path)
 
         self._state = SystemState()
@@ -95,6 +98,7 @@ class ControlEngine:
         )
 
         self._shutdown_task: asyncio.Task | None = None
+        self._shutdown_start_time: float | None = None
         self._collector_start_time: float | None = None
         self._running = False
 
@@ -204,6 +208,8 @@ class ControlEngine:
         self._relay.cleanup()
         self._leds.cleanup()
         self._buttons.cleanup()
+        if self._display:
+            self._display.cleanup()
 
         self._save_persisted_state()
 
@@ -321,6 +327,9 @@ class ControlEngine:
             if self._shutdown_task and not self._shutdown_task.done():
                 self._shutdown_task.cancel()
                 self._shutdown_task = None
+                self._shutdown_start_time = None
+                if self._display:
+                    self._display.blank()
 
             if not self._relay.is_running:
                 self._relay.start_collector()
@@ -330,9 +339,17 @@ class ControlEngine:
             if self._relay.is_running and (
                 self._shutdown_task is None or self._shutdown_task.done()
             ):
+                self._shutdown_start_time = time.time()
                 self._shutdown_task = asyncio.create_task(
                     self._shutdown_after_delay()
                 )
+
+            # Update countdown display
+            if self._display and self._shutdown_start_time is not None:
+                delay = self._config.dust_collector.shutdown_delay_seconds
+                elapsed = time.time() - self._shutdown_start_time
+                remaining = max(0, int(delay - elapsed + 0.5))
+                self._display.show_countdown(remaining)
 
     async def _shutdown_after_delay(self) -> None:
         """Wait for shutdown delay then stop collector and close gates."""
@@ -347,6 +364,11 @@ class ControlEngine:
 
         logger.info("Shutdown delay elapsed, stopping collector")
         self._update_runtime()
+        self._shutdown_start_time = None
+
+        # Blank the countdown display
+        if self._display:
+            self._display.blank()
 
         # Close all gates and stop collector
         all_gates = self._network.get_all_gates()

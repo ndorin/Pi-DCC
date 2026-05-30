@@ -17,6 +17,11 @@
     "led_count": 12,
     "brightness": 0.5
   },
+  "display": {
+    "data_pin": 5,
+    "clock_pin": 6,
+    "latch_pin": 13
+  },
   "polling_interval_ms": 100,
   "network": {
     "id": "collector",
