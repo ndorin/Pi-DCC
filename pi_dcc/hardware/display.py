@@ -1,6 +1,6 @@
 """7-segment display driver via 74HC595 shift register.
 
-Drives a single-digit common-anode 7-segment display (5011AS) using a 74HC595
+Drives a single-digit common-cathode 7-segment display (5011AS) using a 74HC595
 shift register. Only requires 3 GPIO pins (data, clock, latch).
 
 Display encoding for countdown:
@@ -26,7 +26,7 @@ except ImportError:
 
 
 # Segment bit positions in shift register: QA=a, QB=b, QC=c, QD=d, QE=e, QF=f, QG=g, QH=dp
-# For common anode: 0 = segment ON, 1 = segment OFF
+# For common cathode: 1 = segment ON, 0 = segment OFF
 # Bit order (MSB first into shift register): DP, g, f, e, d, c, b, a
 
 #        a
@@ -37,26 +37,26 @@ except ImportError:
 #       ---
 #        d    .DP
 
-# Common anode digit patterns (0 = ON, 1 = OFF)
+# Common cathode digit patterns (1 = ON, 0 = OFF)
 # Bits: DP g f e d c b a
-_DIGITS_CA = {
-    0: 0b11000000,  # a,b,c,d,e,f on
-    1: 0b11111001,  # b,c on
-    2: 0b10100100,  # a,b,d,e,g on
-    3: 0b10110000,  # a,b,c,d,g on
-    4: 0b10011001,  # b,c,f,g on
-    5: 0b10010010,  # a,c,d,f,g on
-    6: 0b10000010,  # a,c,d,e,f,g on
-    7: 0b11111000,  # a,b,c on
-    8: 0b10000000,  # all on
-    9: 0b10010000,  # a,b,c,d,f,g on
+_DIGITS = {
+    0: 0b00111111,  # a,b,c,d,e,f on
+    1: 0b00000110,  # b,c on
+    2: 0b01011011,  # a,b,d,e,g on
+    3: 0b01001111,  # a,b,c,d,g on
+    4: 0b01100110,  # b,c,f,g on
+    5: 0b01101101,  # a,c,d,f,g on
+    6: 0b01111101,  # a,c,d,e,f,g on
+    7: 0b00000111,  # a,b,c on
+    8: 0b01111111,  # all on
+    9: 0b01101111,  # a,b,c,d,f,g on
 }
 
-# Blank display (all segments off for common anode = all bits high)
-_BLANK = 0b11111111
+# Blank display (all segments off = all bits low)
+_BLANK = 0b00000000
 
-# Decimal point mask: clear DP bit (bit 7) to turn it on
-_DP_MASK = 0b01111111
+# Decimal point mask: set DP bit (bit 7) to turn it on
+_DP_MASK = 0b10000000
 
 
 class DisplayController:
@@ -122,10 +122,10 @@ class DisplayController:
 
         if seconds >= 10:
             digit = seconds % 10
-            pattern = _DIGITS_CA[digit] & _DP_MASK  # Add decimal point
+            pattern = _DIGITS[digit] | _DP_MASK  # Add decimal point
         else:
             digit = seconds
-            pattern = _DIGITS_CA[digit]
+            pattern = _DIGITS[digit]
 
         if self._current_value != seconds:
             self._current_value = seconds

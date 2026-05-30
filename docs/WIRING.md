@@ -187,8 +187,8 @@ Shows shutdown countdown: `5.` = 15s, `4.` = 14s, ... `0.` = 10s, `9` = 9s, ... 
   QG (pin 6)  ── 220Ω ── Display pin 10 (segment g)
   QH (pin 7)  ── 220Ω ── Display pin 5  (decimal point)
 
-5011AS display (common anode, 10 pins):
-  Pin 3, Pin 8 (COM) ──── 3.3V
+5011AS display (common cathode, 10 pins):
+  Pin 3, Pin 8 (COM) ──── GND
 ```
 
 ```
