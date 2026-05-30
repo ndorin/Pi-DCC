@@ -102,7 +102,10 @@ class ADCReader:
             True if measured current exceeds threshold.
         """
         current = self.read_current_amps(board_index, channel)
-        return current > threshold_amps
+        running = current > threshold_amps
+        if running:
+            logger.debug("Tool on board %d ch %d: %.2f A (threshold %.2f)", board_index, channel, current, threshold_amps)
+        return running
 
     def set_simulated_current(
         self, board_index: int, channel: int, amps: float

@@ -111,6 +111,12 @@ class ButtonController:
         """Check if a specific trigger is currently active."""
         return self._active_triggers.get(trigger_id, False)
 
+    def clear_all(self) -> None:
+        """Deactivate all manual triggers."""
+        for tid in self._active_triggers:
+            self._active_triggers[tid] = False
+        logger.info("All manual triggers cleared")
+
     def simulate_press(self, trigger_id: str) -> None:
         """Simulate a button press (for testing/simulation mode)."""
         if trigger_id in self._triggers:

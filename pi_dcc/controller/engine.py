@@ -158,9 +158,10 @@ class ControlEngine:
         return list(self._web_override_nodes)
 
     def stop_all(self) -> None:
-        """Clear all web overrides, effectively requesting system shutdown."""
+        """Clear all web overrides and manual triggers, effectively requesting system shutdown."""
         self._web_override_nodes.clear()
-        logger.info("All web overrides cleared (stop all)")
+        self._buttons.clear_all()
+        logger.info("All overrides and triggers cleared (stop all)")
 
     @property
     def state(self) -> SystemState:

@@ -10,7 +10,7 @@
     "target_velocity_fpm": 4000,
     "minimum_cfm_ratio": 0.8
   },
-  "adc_boards": [{ "address": "0x48", "bus": 1 }],
+  "adc_boards": [{ "address": "0x4A", "bus": 1 }],
   "pwm_boards": [{ "address": "0x40", "bus": 1 }],
   "neopixel": {
     "gpio_pin": 18,
