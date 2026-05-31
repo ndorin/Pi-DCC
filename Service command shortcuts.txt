@@ -2,3 +2,7 @@ sudo systemctl status pi-dcc       # Check if running
 sudo journalctl -u pi-dcc -f       # Follow live logs
 sudo systemctl restart pi-dcc      # Restart after code changes
 sudo systemctl stop pi-dcc         # Stop
+
+YK8QTG4rUuwJVfEFsE2!HFa.aBg
+
+sudo i2cdetect -y 1
