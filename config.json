@@ -40,8 +40,8 @@
               "pwm_board": 0,
               "pwm_channel": 5,
               "led_index": 5,
-              "servo_open_angle": 90,
-              "servo_close_angle": 0,
+              "servo_open_angle": 0,
+              "servo_close_angle": 88,
               "servo_min_pulse": 500,
               "servo_max_pulse": 2500
             },
@@ -56,8 +56,8 @@
               "pwm_board": 0,
               "pwm_channel": 7,
               "led_index": 7,
-              "servo_open_angle": 90,
-              "servo_close_angle": 0,
+              "servo_open_angle": 0,
+              "servo_close_angle": 88,
               "servo_min_pulse": 500,
               "servo_max_pulse": 2500
             },
@@ -72,8 +72,8 @@
               "pwm_board": 0,
               "pwm_channel": 9,
               "led_index": 9,
-              "servo_open_angle": 90,
-              "servo_close_angle": 0,
+              "servo_open_angle": 0,
+              "servo_close_angle": 88,
               "servo_min_pulse": 500,
               "servo_max_pulse": 2500
             },
@@ -88,8 +88,8 @@
               "pwm_board": 0,
               "pwm_channel": 10,
               "led_index": 10,
-              "servo_open_angle": 90,
-              "servo_close_angle": 0
+              "servo_open_angle": 0,
+              "servo_close_angle": 88
             },
             "children": []
           },
@@ -102,8 +102,8 @@
               "pwm_board": 0,
               "pwm_channel": 3,
               "led_index": 3,
-              "servo_open_angle": 90,
-              "servo_close_angle": 0,
+              "servo_open_angle": 0,
+              "servo_close_angle": 88,
               "servo_min_pulse": 500,
               "servo_max_pulse": 2500
             },
@@ -118,8 +118,8 @@
               "pwm_board": 0,
               "pwm_channel": 8,
               "led_index": 8,
-              "servo_open_angle": 90,
-              "servo_close_angle": 0,
+              "servo_open_angle": 0,
+              "servo_close_angle": 88,
               "supplemental_priority": 10
             },
             "children": []
@@ -133,8 +133,8 @@
               "pwm_board": 0,
               "pwm_channel": 4,
               "led_index": 4,
-              "servo_open_angle": 90,
-              "servo_close_angle": 0
+              "servo_open_angle": 0,
+              "servo_close_angle": 88
             },
             "children": [] 
           },
@@ -147,8 +147,8 @@
               "pwm_board": 0,
               "pwm_channel": 11,
               "led_index": 11,
-              "servo_open_angle": 90,
-              "servo_close_angle": 0
+              "servo_open_angle": 0,
+              "servo_close_angle": 88
             },
             "children": []
           },
@@ -161,10 +161,10 @@
               "pwm_board": 0,
               "pwm_channel": 0,
               "led_index": 0,
-              "servo_open_angle": 90,
-              "servo_close_angle": 0,
+              "servo_open_angle": 0,
+              "servo_close_angle": 88,
               "servo_min_pulse": 500,
-              "servo_max_pulse": 2700
+              "servo_max_pulse": 2500
             },
             "children": [
               {
@@ -176,8 +176,8 @@
                   "pwm_board": 0,
                   "pwm_channel": 1,
                   "led_index": 1,
-                  "servo_open_angle": 90,
-                  "servo_close_angle": 0
+                  "servo_open_angle": 0,
+                  "servo_close_angle": 88
                 },
                 "children": []
               },
@@ -190,8 +190,8 @@
                   "pwm_board": 0,
                   "pwm_channel": 2,
                   "led_index": 2,
-                  "servo_open_angle": 90,
-                  "servo_close_angle": 0
+                  "servo_open_angle": 0,
+                  "servo_close_angle": 88
                 },
                 "children": []
               },
@@ -204,8 +204,8 @@
                   "pwm_board": 0,
                   "pwm_channel": 6,
                   "led_index": 6,
-                  "servo_open_angle": 90,
-                  "servo_close_angle": 0
+                  "servo_open_angle": 0,
+                  "servo_close_angle": 88
                 },
                 "children": []
               }
