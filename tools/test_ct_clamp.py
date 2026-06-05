@@ -28,7 +28,7 @@ I2C_ADDRESS = 0x48
 ADC_CHANNEL = 0  # A0 (channel index)
 RMS_SAMPLES = 200  # More samples for better accuracy over multiple AC cycles
 SAMPLE_DELAY = 0.0005  # 0.5ms between samples (~100ms total capture window)
-CT_CALIBRATION_FACTOR = 111.0  # SCT-013-000: 100A/50mA, turns ratio 2000:1
+CT_CALIBRATION_FACTOR = 316.69  # SCT-013-000: 100A/50mA, turns ratio 2000:1
 # Formula: turns_ratio / burden_ohms = 2000 / R_burden
 # With 2x 10Ω bias resistors, effective burden depends on wiring.
 # Use --calibrate <known_amps> to find the exact value for your setup.
