@@ -33,7 +33,7 @@ class ADCReader:
 
     # Reference voltage for CT sensor calibration
     # SCT-013-030: 30A/1V, with burden resistor producing voltage proportional to current
-    CT_CALIBRATION_FACTOR = 316.69
+    CT_CALIBRATION_FACTOR = 300
 
     def __init__(self, boards_config: list[ADCBoardConfig], simulate: bool = False):
         self._simulate = simulate or not HAS_HARDWARE
