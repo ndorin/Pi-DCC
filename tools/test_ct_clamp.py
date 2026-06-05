@@ -13,7 +13,6 @@ try:
     import board
     import busio
     import adafruit_ads1x15.ads1115 as ADS
-    from adafruit_ads1x15.ads1x15 import Mode
     from adafruit_ads1x15.analog_in import AnalogIn
 except ImportError:
     print("ERROR: Required libraries not found.")
@@ -43,7 +42,7 @@ def main():
         i2c = busio.I2C(board.SCL, board.SDA)
         ads = ADS.ADS1115(i2c, address=I2C_ADDRESS)
         ads.gain = 1  # +/- 4.096V range
-        chan = AnalogIn(ads, ADS.P0)
+        chan = AnalogIn(ads, ADC_CHANNEL)
         print("ADS1115 initialized successfully.")
     except Exception as e:
         print(f"ERROR: Failed to initialize ADS1115: {e}")
