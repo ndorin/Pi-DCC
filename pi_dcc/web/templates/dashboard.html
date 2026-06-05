@@ -106,7 +106,7 @@
         function updateDashboard(data) {
             // Collector status
             const badge = document.getElementById('collector-status');
-            if (data.collector_running && data.shutdown_countdown_seconds !== null) {
+            if (data.shutdown_countdown_seconds != null) {
                 badge.textContent = 'Collector: OFF in ' + data.shutdown_countdown_seconds + 's';
                 badge.className = 'status-badge shutting-down';
             } else if (data.collector_running) {
@@ -227,11 +227,13 @@
             const container = document.getElementById('network-diagram');
             const layout = computeLayout(networkData);
 
+            const NODE_H = 90;
+            const offsetY = NODE_H / 2 + 10;
             const width = layout.width + 40;
-            const height = layout.height + 60;
+            const height = layout.height + offsetY + NODE_H / 2 + 10;
 
             let html = `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">`;
-            html += renderNode(networkData, layout.positions, 20, 20);
+            html += renderNode(networkData, layout.positions, 20, offsetY);
             html += '</svg>';
             container.innerHTML = html;
 
