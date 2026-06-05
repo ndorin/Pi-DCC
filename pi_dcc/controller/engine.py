@@ -38,6 +38,7 @@ class SystemState:
         self.open_gates: list[str] = []
         self.supplemental_gates: list[str] = []
         self.collector_running: bool = False
+        self.shutdown_countdown_seconds: int | None = None
         self.current_cfm: float = 0.0
         self.required_cfm: float = 0.0
         self.cumulative_runtime_hours: float = 0.0
@@ -51,6 +52,7 @@ class SystemState:
             "open_gates": self.open_gates,
             "supplemental_gates": self.supplemental_gates,
             "collector_running": self.collector_running,
+            "shutdown_countdown_seconds": self.shutdown_countdown_seconds,
             "current_cfm": round(self.current_cfm, 1),
             "required_cfm": round(self.required_cfm, 1),
             "cumulative_runtime_hours": round(self.cumulative_runtime_hours, 2),
@@ -296,10 +298,18 @@ class ControlEngine:
         # 8. Update state
         self._state.active_tools = active_tools
         self._state.active_triggers = active_trigger_ids
-        self._state.open_gates = [g.id for g in required_gates]
-        self._state.supplemental_gates = [g.id for g in supplemental_gates]
+        self._state.open_gates = [g.id for g in all_gates if g.id in desired_open_ids and g.id in required_gate_ids]
+        self._state.supplemental_gates = [g.id for g in all_gates if g.id in desired_open_ids and g.id not in required_gate_ids]
         self._state.collector_running = self._relay.is_running
         self._state.required_cfm = required_cfm_for_tools(active_cfm_values)
+
+        # Shutdown countdown
+        if self._shutdown_start_time is not None and self._shutdown_task and not self._shutdown_task.done():
+            delay = self._config.dust_collector.shutdown_delay_seconds
+            elapsed = time.time() - self._shutdown_start_time
+            self._state.shutdown_countdown_seconds = max(0, int(delay - elapsed + 0.5))
+        else:
+            self._state.shutdown_countdown_seconds = None
 
         open_gate_configs = [g for g in all_gates if g.id in desired_open_ids]
         self._state.current_cfm = total_open_cfm(

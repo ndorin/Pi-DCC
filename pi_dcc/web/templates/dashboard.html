@@ -106,7 +106,10 @@
         function updateDashboard(data) {
             // Collector status
             const badge = document.getElementById('collector-status');
-            if (data.collector_running) {
+            if (data.collector_running && data.shutdown_countdown_seconds !== null) {
+                badge.textContent = 'Collector: OFF in ' + data.shutdown_countdown_seconds + 's';
+                badge.className = 'status-badge shutting-down';
+            } else if (data.collector_running) {
                 badge.textContent = 'Collector: ON';
                 badge.className = 'status-badge on';
             } else {
