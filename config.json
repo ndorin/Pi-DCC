@@ -95,10 +95,10 @@
           },
           {
             "id": "jointer_port",
-            "pipe_diameter_inches": 4,
+            "pipe_diameter_inches": 5,
             "blast_gate": {
               "id": "gate_jointer",
-              "diameter_inches": 4,
+              "diameter_inches": 5,
               "pwm_board": 0,
               "pwm_channel": 3,
               "led_index": 3,
@@ -222,7 +222,7 @@
       "enabled": true,
       "adc_board": 0,
       "adc_channel": 0,
-      "current_threshold_amps": 10,
+      "current_threshold_amps": 7,
       "required_cfm": 1000,
       "node_ids": ["table_saw_bottom_port", "table_saw_guard_port"]
     },
