@@ -190,8 +190,8 @@
                   "pwm_board": 0,
                   "pwm_channel": 2,
                   "led_index": 2,
-                  "servo_open_angle": 0,
-                  "servo_close_angle": 88
+                  "servo_open_angle": 10,
+                  "servo_close_angle": 110
                 },
                 "children": []
               },
