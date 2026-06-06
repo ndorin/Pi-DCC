@@ -23,6 +23,9 @@ except ImportError:
 class ServoController:
     """Controls blast gate servos via PCA9685 PWM driver boards."""
 
+    # Delay after moving before detaching (let servo reach position)
+    DETACH_DELAY_SECONDS = 0.5
+
     def __init__(self, boards_config: list[PWMBoardConfig], simulate: bool = False):
         self._simulate = simulate or not HAS_HARDWARE
         self._boards: list = []
@@ -69,7 +72,7 @@ class ServoController:
             self.close_gate(gate)
 
     def _set_servo_angle(self, gate: BlastGateConfig, angle: int) -> None:
-        """Set a servo to a specific angle."""
+        """Set a servo to a specific angle, then detach after settling."""
         if self._simulate:
             logger.debug(
                 "SIM: Set servo board=%d ch=%d to %d°",
@@ -78,14 +81,18 @@ class ServoController:
             return
 
         pca = self._boards[gate.pwm_board]
+        channel = pca.channels[gate.pwm_channel]
         srv = servo_module.Servo(
-            pca.channels[gate.pwm_channel],
+            channel,
             min_pulse=gate.servo_min_pulse,
             max_pulse=gate.servo_max_pulse,
         )
         for attempt in range(3):
             try:
                 srv.angle = angle
+                # Allow servo to reach position, then detach
+                time.sleep(self.DETACH_DELAY_SECONDS)
+                channel.duty_cycle = 0
                 return
             except OSError as e:
                 if attempt < 2:
