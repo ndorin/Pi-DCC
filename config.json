@@ -176,8 +176,8 @@
                   "pwm_board": 0,
                   "pwm_channel": 1,
                   "led_index": 1,
-                  "servo_open_angle": 0,
-                  "servo_close_angle": 88
+                  "servo_open_angle": 10,
+                  "servo_close_angle": 130
                 },
                 "children": []
               },
